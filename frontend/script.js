@@ -1,5 +1,3 @@
-const API_BASE_URL = 'http://127.0.0.1:5000';
-
 // Global variables
 let map;
 let flightMarkers = [];
@@ -230,18 +228,11 @@ function initializeCharts() {
 
 // Connect to WebSocket for real-time updates
 function connectWebSocket() {
-    socket = io(API_BASE_URL); // Updated from 'http://localhost:5000'
+    socket = io('http://localhost:5000');
     
     socket.on('connect', function() {
         console.log('✅ Connected to server');
         showToast('Connected to live data stream', 'success');
-    });
-    
-    //socket = io('http://localhost:5000');
-    
-    //socket.on('connect', function() {
-        //console.log('✅ Connected to server');
-        //showToast('Connected to live data stream', 'success');
     });
     
     socket.on('data_update', function(data) {
@@ -269,7 +260,7 @@ function connectWebSocket() {
 
 // Fetch current flights
 function fetchCurrentFlights() {
-    fetch(`${API_BASE_URL}/api/flights/current`) // Changed from relative path
+    fetch('/api/flights/current')
         .then(response => response.json())
         .then(data => {
             if (data.flights) {
@@ -285,53 +276,21 @@ function fetchCurrentFlights() {
             showToast('Failed to fetch flight data', 'error');
         });
 }
-//function fetchCurrentFlights() {
-  //  fetch('/api/flights/current')
-    //fetch('http://localhost:5000/api/flights/current')
-    //    .then(response => response.json())
-      //  .then(data => {
-        //    if (data.flights) {
-          //      updateMap(data.flights);
-            //    updateFlightsList(data.flights);
-              //  currentFlights = data.flights;
-                //updateAltitudeChart(data.flights);
-                //updateFlightCount(data.flights);
-        //    }
-       // })
-       // .catch(error => {
-         //   console.error('Error fetching flights:', error);
-           // showToast('Failed to fetch flight data', 'error');
-       // });
-//}
 
 // Fetch statistics
-//function fetchStats() {
-  //  fetch('/api/stats')
-    //fetch('http://localhost:5000/api/flights/current')
-      //  .then(response => response.json())
-        //.then(data => {
-            // Animate the number changes
-          //  animateValue('totalFlights', document.getElementById('totalFlights').textContent, data.total_flights || 0);
-           // animateValue('activeFlights', document.getElementById('activeFlights').textContent, data.active_flights || 0);
-         //   animateValue('avgAltitude', document.getElementById('avgAltitude').textContent, Math.round(data.avg_altitude || 0));
-         //   animateValue('maxAltitude', document.getElementById('maxAltitude').textContent, Math.round(data.max_altitude || 0));
-       //     animateValue('airportsDetected', document.getElementById('airportsDetected').textContent, data.airports_detected || 0);
-     //       animateValue('collectionDays', document.getElementById('collectionDays').textContent, data.collection_days || 0);
-            
-            // Update timeline chart
-         //   updateTimelineChart();
-       // })
-      //  .catch(error => {
-    //        console.error('Error fetching stats:', error);
-  //      });
-//}
-
 function fetchStats() {
-    fetch(`${API_BASE_URL}/api/stats`) // Changed from relative path
+    fetch('/api/stats')
         .then(response => response.json())
         .then(data => {
+            // Animate the number changes
             animateValue('totalFlights', document.getElementById('totalFlights').textContent, data.total_flights || 0);
-            // ... (keep all your animateValue lines)
+            animateValue('activeFlights', document.getElementById('activeFlights').textContent, data.active_flights || 0);
+            animateValue('avgAltitude', document.getElementById('avgAltitude').textContent, Math.round(data.avg_altitude || 0));
+            animateValue('maxAltitude', document.getElementById('maxAltitude').textContent, Math.round(data.max_altitude || 0));
+            animateValue('airportsDetected', document.getElementById('airportsDetected').textContent, data.airports_detected || 0);
+            animateValue('collectionDays', document.getElementById('collectionDays').textContent, data.collection_days || 0);
+            
+            // Update timeline chart
             updateTimelineChart();
         })
         .catch(error => {
@@ -341,7 +300,7 @@ function fetchStats() {
 
 // Fetch airports
 function fetchAirports() {
-    fetch(`${API_BASE_URL}/api/airports`) // Changed from relative path
+    fetch('/api/airports')
         .then(response => response.json())
         .then(data => {
             updateAirportsList(data);
@@ -352,7 +311,12 @@ function fetchAirports() {
         })
         .catch(error => {
             console.error('Error fetching airports:', error);
-            // ... (keep error handling)
+            document.getElementById('airportsList').innerHTML = `
+                <div class="loading-state">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #ef4444;"></i>
+                    <p>Failed to load airport data</p>
+                </div>
+            `;
         });
 }
 
@@ -691,7 +655,7 @@ function updateAltitudeChart(flights) {
 
 // Update timeline chart with hourly data
 function updateTimelineChart() {
-    fetch(`${API_BASE_URL}/api/flights/recent/24`) // Changed from relative path
+    fetch('/api/flights/recent/24')
         .then(response => response.json())
         .then(data => {
             if (!data || data.length === 0) {
